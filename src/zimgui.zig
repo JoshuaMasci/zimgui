@@ -15,6 +15,7 @@ pub const Vec2 = c.ImVec2;
 pub const DrawVert = c.ImDrawVert;
 pub const DrawIdx = c.ImDrawIdx;
 pub const DrawList = c.ImDrawList;
+pub const DrawCmd = c.ImDrawCmd;
 
 pub const FontAtlas = struct {
     size: [2]u32,

@@ -12,6 +12,9 @@ pub const InitError = error{
 
 //Types
 pub const Vec2 = c.ImVec2;
+pub const DrawVert = c.ImDrawVert;
+pub const DrawIdx = c.ImDrawIdx;
+pub const DrawList = c.ImDrawList;
 
 pub const FontAtlas = struct {
     size: [2]u32,
@@ -29,6 +32,66 @@ pub const DrawData = struct {
     display_size: Vec2,
     framebuffer_scale: Vec2,
     owner_viewport: *const c.ImGuiViewport,
+};
+
+pub const GuiConfigFlags = packed struct {
+    nav_enable_keyboard: bool = false,
+    nav_enable_gamepad: bool = false,
+    _reserved2: u2 = 0,
+    no_mouse: bool = false,
+    no_mouse_cursor_change: bool = false,
+    no_keyboard: bool = false,
+    docking_enable: bool = false,
+    _reserved8: u2 = 0,
+    viewports_enable: bool = false,
+    _reserved11: u3 = 0,
+    dpi_enable_scale_viewports: bool = false,
+    dpi_enable_scale_fonts: bool = false,
+    _reserved16: u4 = 0,
+    is_srgb: bool = false,
+    is_touch_screen: bool = false,
+    _padding: u10 = 0,
+};
+
+pub const WindowFlags = packed struct {
+    no_title_bar: bool = false,
+    no_resize: bool = false,
+    no_move: bool = false,
+    no_scrollbar: bool = false,
+    no_scroll_with_mouse: bool = false,
+    no_collapse: bool = false,
+    always_auto_resize: bool = false,
+    no_background: bool = false,
+    no_saved_settings: bool = false,
+    no_mouse_inputs: bool = false,
+    menu_bar: bool = false,
+    horizontal_scrollbar: bool = false,
+    no_focus_on_appearing: bool = false,
+    no_bring_to_front_on_focus: bool = false,
+    always_vertical_scrollbar: bool = false,
+    always_horizontal_scrollbar: bool = false,
+    no_nav_inputs: bool = false,
+    no_nav_focus: bool = false,
+    unsaved_document: bool = false,
+    no_docking: bool = false,
+    _reserved20: u3 = 0,
+    dock_node_host: bool = false,
+    child_window: bool = false,
+    tooltip: bool = false,
+    popup: bool = false,
+    modal: bool = false,
+    child_menu: bool = false,
+    _padding: u3 = 0,
+
+    pub const NO_NAV: @This() = .{ .no_nav_inputs = true, .no_nav_focus = true };
+    pub const NO_DECORATION: @This() = .{ .no_title_bar = true, .no_resize = true, .no_scrollbar = true, .no_collapse = true };
+    pub const NO_INPUTS: @This() = .{ .no_mouse_inputs = true, .no_nav_inputs = true, .no_nav_focus = true };
+
+    comptime {
+        if (@sizeOf(@This()) != @sizeOf(c.ImGuiWindowFlags)) {
+            @compileError("WindowFlags size doesn't match c.ImGuiWindowFlags");
+        }
+    }
 };
 
 //Util Functions
@@ -143,9 +206,9 @@ pub fn getDrawData(self: Self) DrawData {
     };
 }
 
-pub fn begin(self: Self, name: [:0]const u8, p_open: ?*bool, flags: c.ImGuiWindowFlags) bool {
+pub fn begin(self: Self, name: [:0]const u8, p_open: ?*bool, flags: WindowFlags) bool {
     std.debug.assert(self.isContextActive());
-    return c.igBegin(name, p_open, flags);
+    return c.igBegin(name, p_open, @bitCast(flags));
 }
 
 pub fn end(self: Self) void {

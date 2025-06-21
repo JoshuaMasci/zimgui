@@ -17,7 +17,7 @@ pub fn main() !void {
 
         imgui.newFrame();
 
-        if (imgui.begin("Test Window", null, 0)) {
+        if (imgui.begin("Test Window", null, .{})) {
             imgui.text("This is a label");
             imgui.textFmt("This is a {s} label", .{"formated"});
         }

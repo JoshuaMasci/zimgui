@@ -171,6 +171,31 @@ pub fn getFontAtlasAsRGBA32(self: Self) ?FontAtlas {
     };
 }
 
+pub fn getFontAtlasAsR8(self: Self) ?FontAtlas {
+    const io = c.igGetIO_ContextPtr(self.context);
+    const fonts = io.*.Fonts;
+
+    var out_pixels: [*c]u8 = undefined;
+    var out_width: c_int = 0;
+    var out_height: c_int = 0;
+    var out_bytes_per_pixel: c_int = 0;
+
+    // Get texture data as RGBA32
+    c.ImFontAtlas_GetTexDataAsAlpha8(fonts, &out_pixels, &out_width, &out_height, &out_bytes_per_pixel);
+
+    const pixel_count = @as(usize, @intCast(out_width)) * @as(usize, @intCast(out_height));
+    const total_bytes = pixel_count * @as(usize, @intCast(out_bytes_per_pixel));
+
+    // Copy the texture data into a managed buffer
+    const buffer = self.allocator.dupe(u8, out_pixels[0..total_bytes]) catch return null;
+
+    return FontAtlas{
+        .size = [2]u32{ @intCast(out_width), @intCast(out_height) },
+        .bytes_per_pixel = @intCast(out_bytes_per_pixel),
+        .data = buffer,
+    };
+}
+
 pub fn getIo(self: Self) ?*c.ImGuiIO {
     return c.igGetIO_ContextPtr(self.context);
 }
